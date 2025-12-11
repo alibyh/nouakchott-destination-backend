@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "canonicalName": "Toujounine",
+        "canonicalName": "توجنين",
         "variants": [
             "توجنين",
             "توجونين",
@@ -16,7 +16,7 @@
     },
     {
         "id": 2,
-        "canonicalName": "Teyaret",
+        "canonicalName":  "تيارت",
         "variants": [
             "تيارت",
             "تيارة",
@@ -30,9 +30,10 @@
     },
     {
         "id": 3,
-        "canonicalName": "Ksar",
+        "canonicalName": "لكصر",
         "variants": [
             "كصر",
+            "لكصر",
             "القصر",
             "حي كصر",
             "ksar",
@@ -44,7 +45,7 @@
     },
     {
         "id": 4,
-        "canonicalName": "Tevragh Zeina",
+        "canonicalName": "تفرغ زينة",
         "variants": [
             "تفرغ زينة",
             "تفرغ زينا",
@@ -58,7 +59,7 @@
     },
     {
         "id": 5,
-        "canonicalName": "Sebkha",
+        "canonicalName":  "السبخة",
         "variants": [
             "سبخة",
             "السبخة",
@@ -72,7 +73,7 @@
     },
     {
         "id": 6,
-        "canonicalName": "Dar Naim",
+        "canonicalName": "دار النعيم",
         "variants": [
             "دار النعيم",
             "دار نعيم",
@@ -86,7 +87,7 @@
     },
     {
         "id": 7,
-        "canonicalName": "Arafat",
+        "canonicalName":  "عرفات",
         "variants": [
             "عرفات",
             "عرفة",
@@ -111,7 +112,7 @@
     },
     {
         "id": 9,
-        "canonicalName": "Cinquième",
+        "canonicalName":  "سانكيام",
         "variants": [
             "سانكيام",
             "الخامس",
@@ -125,7 +126,7 @@
     },
     {
         "id": 10,
-        "canonicalName": "Port",
+        "canonicalName": "Port - الميناء",
         "variants": [
             "الميناء",
             "ميناء",
@@ -152,7 +153,7 @@
     },
     {
         "id": 12,
-        "canonicalName": "Carrefour Ain Talh",
+        "canonicalName":  "كارفور عين الطلح",
         "variants": [
             "عين الطلح",
             "ain talh",
@@ -164,7 +165,7 @@
     },
     {
         "id": 13,
-        "canonicalName": "Mint Jdey",
+        "canonicalName":  "سمعة منت أجدي",
         "variants": [
             "سمعة منت أجدي",
             "سمعة منت جدي",
@@ -175,7 +176,7 @@
     },  
     {
         "id": 14,
-        "canonicalName": "Four Ould Sibrou",
+        "canonicalName":  "فور ولد سبرو",
         "variants": [
             "فور ولد سبرو",
             "فور ول سبرو",
@@ -187,7 +188,7 @@
     },
     {
         "id": 15,
-        "canonicalName": "Carrefour BMD",
+        "canonicalName":  "كرفور بي أم دي",
         "variants": [
             "كرفور بي أم دي",
             "كرفور ",
@@ -199,7 +200,7 @@
     },
     {
         "id": 16,
-        "canonicalName": "Mosquée Ould Ahmedou",
+        "canonicalName": "مسجد ولد أحمدو",
         "variants": [
             "مسجد ولد أحمدو",
             "مسجد ولد أحمدو",
@@ -212,7 +213,7 @@
     },
     {
         "id": 17,
-        "canonicalName": "Hôpital Militaire de Nouakchott",
+        "canonicalName": "مستشفى نواكشوط العسكري",
         "variants": [
             "مستشفى نواكشوط العسكري",
             "طب الصنادرة",
@@ -234,7 +235,7 @@
     },
     {
         "id": 18,
-        "canonicalName": "Mosquée Ould Oumouhoud",
+        "canonicalName": "مسجد ولد اموحود",
         "variants": [
             "مسجد ولد اموحود",
             "مسجد ولد اموحود",
@@ -275,10 +276,14 @@
             "complexe ibadou al rhaman 3",
             "complexe ibado al rhaman trois",
             "complexe ibado al rhaman trois",
-            "مجمع عباد الرحمان ثلاثة",
-            "مجمع عباد الرحمان ثلاثة",
+            "مجمع عباد الرحمان واحد",
+            "مجمع عباد الرحمان واحد",
             "مجمع عباد رحمن واحد",
-            "مجمع عباد رحمان واحد"
+            "مجمع عباد رحمان واحد",
+            "بقالة عباد الرحمان واحد",
+            "بقالة عباد الرحمان واحد",
+            "بقالة عباد رحمن واحد",
+            "بقالة عباد رحمان واحد"
 
         ],
         "lat": 18.143666831996065, 

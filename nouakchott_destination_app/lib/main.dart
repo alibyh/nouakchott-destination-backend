@@ -4,6 +4,7 @@ import 'package:record/record.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Nouakchott Taxi',
+      title: 'Fasty',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -43,10 +44,14 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
   final TextEditingController _textController = TextEditingController();
   final AudioRecorder _audioRecorder = AudioRecorder();
   
-  // Fixed departure point: 32XR+HJX, Ave Boubacar Ben Amer
-  static const LatLng _departurePoint = LatLng(18.069941, -15.969627);
+  // Fixed departure point: Carrefour Ould Mahe كرفور ولد اماه
+  static const LatLng _departurePoint = LatLng(18.099011164111623, -15.958358591628299);
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
+  
+  // Location state
+  LatLng? _currentLocation;
+  bool _useCurrentLocation = false;
   
   // Pending destination (before confirmation)
   Map<String, dynamic>? _pendingDestination;
@@ -128,15 +133,27 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
     );
   }
 
+  // Get current departure point (either current location or fixed)
+  LatLng get _currentDeparturePoint {
+    return _useCurrentLocation && _currentLocation != null
+        ? _currentLocation!
+        : _departurePoint;
+  }
+
   void _addDepartureMarker() {
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('departure'),
-        position: _departurePoint,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow: const InfoWindow(title: 'Departure'),
-      ),
-    );
+    setState(() {
+      _markers.removeWhere((m) => m.markerId.value == 'departure');
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('departure'),
+          position: _currentDeparturePoint,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: InfoWindow(
+            title: _useCurrentLocation ? 'Current Location' : 'Departure',
+          ),
+        ),
+      );
+    });
   }
 
   void _addDestinationMarker(LatLng position, String name) {
@@ -155,13 +172,14 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
 
   Future<void> _drawRoute(LatLng destination) async {
     setState(() => _polylines.clear());
+    final origin = _currentDeparturePoint;
 
     if (directionsApiKey.isEmpty) {
       _log('Directions API key missing. Pass --dart-define=DIRECTIONS_API_KEY=...');
       _polylines.add(
         Polyline(
           polylineId: const PolylineId('route'),
-          points: [_departurePoint, destination],
+          points: [origin, destination],
           color: const Color(0xFF00BFA5),
           width: 5,
         ),
@@ -170,7 +188,7 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
     }
 
     try {
-      final points = await _fetchRoutePolyline(_departurePoint, destination);
+      final points = await _fetchRoutePolyline(origin, destination);
 
       if (points.isEmpty) {
         _log('No route points returned; falling back to straight line');
@@ -178,7 +196,7 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
           _polylines.add(
             Polyline(
               polylineId: const PolylineId('route'),
-              points: [_departurePoint, destination],
+              points: [origin, destination],
               color: const Color(0xFF00BFA5),
               width: 5,
             ),
@@ -208,7 +226,7 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
         _polylines.add(
           Polyline(
             polylineId: const PolylineId('route'),
-            points: [_departurePoint, destination],
+            points: [origin, destination],
             color: const Color(0xFF00BFA5),
             width: 5,
           ),
@@ -334,12 +352,24 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
         final dest = data['destination'];
         
         setState(() {
+          // Reset confirmed destination state to allow new destination confirmation
+          _confirmedDestinationName = null;
+          _confirmedDestinationPos = null;
+          _markers.removeWhere((m) => m.markerId.value == 'destination');
+          _polylines.clear();
+          
+          // Set new pending destination
           _pendingDestination = dest;
           _matchMethod = dest['matchedBy'];
           _statusMessage = '📍 Found: ${dest['canonicalName']}';
           _textController.text = dest['canonicalName']; // Show destination name, not transcript
           _isProcessing = false;
         });
+        
+        // Reset camera to departure point when new destination is found
+        _mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(_currentDeparturePoint, 12),
+        );
         
         _log('Destination found: ${dest['canonicalName']}');
       } else {
@@ -388,7 +418,170 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
     });
     
     _mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(_departurePoint, 12),
+      CameraUpdate.newLatLngZoom(_currentDeparturePoint, 12),
+    );
+  }
+
+  Future<void> _toggleLocationMode() async {
+    if (_useCurrentLocation) {
+      // Switch back to fixed location
+      setState(() {
+        _useCurrentLocation = false;
+        _currentLocation = null;
+        // Clear route since departure point changed
+        _polylines.clear();
+        _confirmedDestinationName = null;
+        _confirmedDestinationPos = null;
+        _markers.removeWhere((m) => m.markerId.value == 'destination');
+      });
+      _addDepartureMarker();
+      _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(_departurePoint, 12),
+      );
+      _log('Switched to fixed departure point');
+    } else {
+      // Request location permission and get current location
+      final status = await Permission.location.status;
+      if (status.isDenied) {
+        final result = await Permission.location.request();
+        if (!result.isGranted) {
+          _showError('Location permission required');
+          return;
+        }
+      } else if (status.isPermanentlyDenied) {
+        _showError('Enable location in Settings');
+        return;
+      }
+
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showError('Please enable location services');
+        return;
+      }
+
+      try {
+        setState(() {
+          _isProcessing = true;
+          _statusMessage = '📍 Getting location...';
+        });
+
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+
+        setState(() {
+          _currentLocation = LatLng(position.latitude, position.longitude);
+          _useCurrentLocation = true;
+          _isProcessing = false;
+          _statusMessage = null;
+          // Clear route since departure point changed
+          _polylines.clear();
+          _confirmedDestinationName = null;
+          _confirmedDestinationPos = null;
+          _markers.removeWhere((m) => m.markerId.value == 'destination');
+        });
+
+        _addDepartureMarker();
+        _mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(_currentLocation!, 15),
+        );
+        _log('Using current location: ${position.latitude}, ${position.longitude}');
+      } catch (e) {
+        _log('Location error: $e');
+        _showError('Failed to get location: $e');
+        setState(() {
+          _isProcessing = false;
+          _statusMessage = null;
+        });
+      }
+    }
+  }
+
+  void _showAvailablePlaces() {
+    // List of available places from places.json
+    final places = [
+      "توجنين",
+      "تيارت",
+      "لكصر",
+      "تفرغ زينة",
+      "السبخة",
+      "دار النعيم",
+      "عرفات",
+      "عنكار دارالبركة",
+      "سانكيام",
+      "Port - الميناء",
+      "مرصة كابيتال",
+      "كارفور عين الطلح",
+      "سمعة منت أجدي",
+      "فور ولد سبرو",
+      "كرفور بي أم دي",
+      "مسجد ولد أحمدو",
+      "مستشفى نواكشوط العسكري",
+      "مسجد ولد اموحود",
+      "مجمع عباد الرحمان 1",
+      "مجمع عباد الرحمان 3",
+      "بقالة الرزام",
+      "مسجد التجانيين",
+      "وقفة صكوك",
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, color: Color(0xFF00BFA5)),
+            SizedBox(width: 8),
+            Text('Available Places'),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: ListView.builder(
+            itemCount: places.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00BFA5).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: const TextStyle(
+                          color: Color(0xFF00BFA5),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      places[index],
+                      style: const TextStyle(fontSize: 16),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -411,7 +604,7 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
               _mapController = controller;
               _log('Map created');
             },
-            initialCameraPosition: CameraPosition(target: _departurePoint, zoom: 12),
+            initialCameraPosition: CameraPosition(target: _currentDeparturePoint, zoom: 12),
             markers: _markers,
             polylines: _polylines,
             myLocationButtonEnabled: false,
@@ -451,7 +644,7 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
                   const Icon(Icons.local_taxi, color: Colors.white, size: 32),
                   const SizedBox(width: 12),
                   const Text(
-                    'Nouakchott Taxi',
+                    'Fasty',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -459,6 +652,19 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
                     ),
                   ),
                   const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.info_outline, color: Colors.white),
+                    tooltip: 'Available Places',
+                    onPressed: _showAvailablePlaces,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      _useCurrentLocation ? Icons.my_location : Icons.location_on,
+                      color: _useCurrentLocation ? Colors.yellow : Colors.white,
+                    ),
+                    tooltip: _useCurrentLocation ? 'Use Fixed Location' : 'Use Current Location',
+                    onPressed: _toggleLocationMode,
+                  ),
                   IconButton(
                     icon: Badge(
                       label: Text('${_debugLogs.length}'),
