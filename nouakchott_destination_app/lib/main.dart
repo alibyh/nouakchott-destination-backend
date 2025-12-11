@@ -66,7 +66,7 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
   // DEBUG
   final List<String> _debugLogs = [];
   
-  static const String apiUrl = 'https//:nouakchott-destination-backend-production.up.railway.app/api/destination-from-audio';
+  static const String apiUrl = 'https://nouakchott-destination-backend-production.up.railway.app/api/destination-from-audio';
 
   static const String directionsApiKey = 'AIzaSyCePYzzXuJDUE7P4s_7XiKHGvtmJQ8Uw-8';
   @override
