@@ -441,17 +441,8 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
       _log('Switched to fixed departure point');
     } else {
       // Request location permission and get current location
-      final status = await Permission.location.status;
-      if (status.isDenied) {
-        final result = await Permission.location.request();
-        if (!result.isGranted) {
-          _showError('Location permission required');
-          return;
-        }
-      } else if (status.isPermanentlyDenied) {
-        _showError('Enable location in Settings');
-        return;
-      }
+      final granted = await _ensureLocationPermission();
+      if (!granted) return;
 
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -496,6 +487,28 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
         });
       }
     }
+  }
+
+  Future<bool> _ensureLocationPermission() async {
+    var status = await Permission.locationWhenInUse.status;
+
+    if (status.isGranted) {
+      return true;
+    }
+
+    if (status.isDenied) {
+      status = await Permission.locationWhenInUse.request();
+      if (status.isGranted) return true;
+    }
+
+    if (status.isPermanentlyDenied || status.isRestricted) {
+      _showError('Enable location permission in Settings');
+      await openAppSettings();
+      return false;
+    }
+
+    _showError('Location permission required');
+    return false;
   }
 
   void _showAvailablePlaces() {
@@ -543,34 +556,10 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
             itemCount: places.length,
             itemBuilder: (context, index) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00BFA5).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: const TextStyle(
-                          color: Color(0xFF00BFA5),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      places[index],
-                      style: const TextStyle(fontSize: 16),
-                      textDirection: TextDirection.rtl,
-                    ),
-                  ),
-                ],
+              child: Text(
+                places[index],
+                style: const TextStyle(fontSize: 16),
+                textDirection: TextDirection.rtl,
               ),
             ),
           ),
@@ -653,9 +642,11 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.info_outline, color: Colors.white),
-                    tooltip: 'Available Places',
-                    onPressed: _showAvailablePlaces,
+                    icon: Badge(
+                      label: Text('${_debugLogs.length}'),
+                      child: const Icon(Icons.bug_report, color: Colors.white),
+                    ),
+                    onPressed: _showDebugLogs,
                   ),
                   IconButton(
                     icon: Icon(
@@ -666,11 +657,9 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
                     onPressed: _toggleLocationMode,
                   ),
                   IconButton(
-                    icon: Badge(
-                      label: Text('${_debugLogs.length}'),
-                      child: const Icon(Icons.bug_report, color: Colors.white),
-                    ),
-                    onPressed: _showDebugLogs,
+                    icon: const Icon(Icons.info_outline, color: Colors.white),
+                    tooltip: 'Available Places',
+                    onPressed: _showAvailablePlaces,
                   ),
                 ],
               ),
