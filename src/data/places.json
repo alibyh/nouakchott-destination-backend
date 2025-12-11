@@ -1,0 +1,328 @@
+[
+    {
+        "id": 1,
+        "canonicalName": "Toujounine",
+        "variants": [
+            "توجنين",
+            "توجونين",
+            "توجنين حي",
+            "حي توجنين",
+            "tougounine",
+            "toujounine",
+            "toujnine"
+        ],
+        "lat": 18.0724,
+        "lon": -15.9099
+    },
+    {
+        "id": 2,
+        "canonicalName": "Teyaret",
+        "variants": [
+            "تيارت",
+            "تيارة",
+            "حي تيارت",
+            "teyaret",
+            "tiyarat",
+            "tearat"
+        ],
+        "lat": 18.134098283050385,
+        "lon": -15.935753531712173
+    },
+    {
+        "id": 3,
+        "canonicalName": "Ksar",
+        "variants": [
+            "كصر",
+            "القصر",
+            "حي كصر",
+            "ksar",
+            "el ksar",
+            "elksar"
+        ],
+        "lat": 18.1022,
+        "lon": -15.9550
+    },
+    {
+        "id": 4,
+        "canonicalName": "Tevragh Zeina",
+        "variants": [
+            "تفرغ زينة",
+            "تفرغ زينا",
+            "حي تفرغ زينة",
+            "tevragh zeina",
+            "tevragh zaina",
+            "teyaret zeina"
+        ],
+        "lat": 18.1278,
+        "lon": -15.9392
+    },
+    {
+        "id": 5,
+        "canonicalName": "Sebkha",
+        "variants": [
+            "سبخة",
+            "السبخة",
+            "حي سبخة",
+            "sebkha",
+            "sabkha",
+            "el sebkha"
+        ],
+        "lat": 18.0856,
+        "lon": -15.9489
+    },
+    {
+        "id": 6,
+        "canonicalName": "Dar Naim",
+        "variants": [
+            "دار النعيم",
+            "دار نعيم",
+            "حي دار النعيم",
+            "dar naim",
+            "dar el naim",
+            "darnaim"
+        ],
+        "lat": 18.1047,
+        "lon": -15.9203
+    },
+    {
+        "id": 7,
+        "canonicalName": "Arafat",
+        "variants": [
+            "عرفات",
+            "عرفة",
+            "حي عرفات",
+            "arafat",
+            "arafate",
+            "3arafat"
+        ],
+        "lat": 18.0589,
+        "lon": -15.9772
+    },
+    {
+        "id": 8,
+        "canonicalName": "عنكار دارالبركة",
+        "variants": [
+            "عنكار الدار البرك",
+            "عنكار دار البركة",
+            "عنكار دارالبركة"
+        ],
+        "lat": 18.1369823733871, 
+        "lon": -15.925014498384938
+    },
+    {
+        "id": 9,
+        "canonicalName": "Cinquième",
+        "variants": [
+            "سانكيام",
+            "الخامس",
+            "حي الخامس",
+            "cinquieme",
+            "5eme",
+            "cinquième"
+        ],
+        "lat": 18.0725,
+        "lon": -15.9485
+    },
+    {
+        "id": 10,
+        "canonicalName": "Port",
+        "variants": [
+            "الميناء",
+            "ميناء",
+            "بور",
+            "port",
+            "le port",
+            "el mina"
+        ],
+        "lat": 18.0508,
+        "lon": -15.9775
+    },
+    {
+        "id": 11,
+        "canonicalName":  "مرصة كابيتال",
+        "variants": [
+            "مرصة كابيتال",
+            " كابيتال",
+            "marche capitale",
+            "marché capitale",
+            "souk capitale"
+        ],
+        "lat": 18.0825,
+        "lon": -15.9598
+    },
+    {
+        "id": 12,
+        "canonicalName": "Carrefour Ain Talh",
+        "variants": [
+            "عين الطلح",
+            "ain talh",
+            "كرفور عين الطلح",
+            "carrefour ain talh"
+        ],
+        "lat": 18.1349827,
+        "lon": -15.932396
+    },
+    {
+        "id": 13,
+        "canonicalName": "Mint Jdey",
+        "variants": [
+            "سمعة منت أجدي",
+            "سمعة منت جدي",
+            "mint jdey"
+        ],
+        "lat": 18.13978052074886,
+        "lon": -15.930498735149463
+    },  
+    {
+        "id": 14,
+        "canonicalName": "Four Ould Sibrou",
+        "variants": [
+            "فور ولد سبرو",
+            "فور ول سبرو",
+            "ولد سبرو",
+            "four old sibrou"
+        ],
+        "lat": 18.130458352200563, 
+        "lon": -15.9354795552741
+    },
+    {
+        "id": 15,
+        "canonicalName": "Carrefour BMD",
+        "variants": [
+            "كرفور بي أم دي",
+            "كرفور ",
+            "carrefour bmd",
+            "carrefour bmd"
+        ],
+        "lat": 18.08801825007249, 
+        "lon": -15.980361245872787
+    },
+    {
+        "id": 16,
+        "canonicalName": "Mosquée Ould Ahmedou",
+        "variants": [
+            "مسجد ولد أحمدو",
+            "مسجد ولد أحمدو",
+            "مسيد ول احمدو ",
+            "mosquée old ahmedou",
+            "mosquée ahmedou"
+        ],
+        "lat": 18.125362114443025, 
+        "lon": -15.920045759494279
+    },
+    {
+        "id": 17,
+        "canonicalName": "Hôpital Militaire de Nouakchott",
+        "variants": [
+            "مستشفى نواكشوط العسكري",
+            "طب الصنادرة",
+            "طب االصنادر",
+            "طب صنادرة",
+            "طب صنادر",
+            "الطب الصنادرة",
+            "الطب صنادرة",
+            "الطب صنادر",
+            "الطب صنادرا",
+            "الطب صنادراء",
+            "الطب صنادراي",
+            "الطب صنادراية",
+            "الطب صنادراية",
+            "hopital militaire de nouakchott"
+        ],
+        "lat": 18.108908002828255, 
+        "lon": -15.952841877937464
+    },
+    {
+        "id": 18,
+        "canonicalName": "Mosquée Ould Oumouhoud",
+        "variants": [
+            "مسجد ولد اموحود",
+            "مسجد ولد اموحود",
+            "مسجد ول اموحود",
+            "مسيد ول اموحود",
+            "مسيد اموحود",
+            "مسجد ام حود",
+            "مسجد ولد ام حود",
+            "مسيد ول ام حود",
+            "مسيد ام حود",
+            "mosquée old oumouhoud",
+            "mosquée oumouhoud",
+            "mosquée oumouhoud"
+        ],
+        "lat": 18.125362114443025, 
+        "lon": -15.920045759494279
+    },
+    {
+        "id": 19,
+        "canonicalName": "مجمع عباد الرحمان 1",
+        "variants": [
+            "complexe ibadou al rhaman wahed",
+            "complexe ibado al rhaman 1",
+            "complexe ibado al rhaman un",
+            "complexe ibado al rhaman wahid",
+            "مجمع عباد الرحمان واحد",
+            "مجمع عباد الرحمان 1",
+            "مجمع عباد رحمن واحد",
+            "مجمع عباد رحمان واحد"
+        ],
+        "lat": 18.141853061508243, 
+        "lon": -15.940628903993359
+    },
+    {
+        "id": 20,
+        "canonicalName": "مجمع عباد الرحمان 3",
+        "variants": [
+            "complexe ibadou al rhaman 3",
+            "complexe ibado al rhaman trois",
+            "complexe ibado al rhaman trois",
+            "مجمع عباد الرحمان ثلاثة",
+            "مجمع عباد الرحمان ثلاثة",
+            "مجمع عباد رحمن واحد",
+            "مجمع عباد رحمان واحد"
+
+        ],
+        "lat": 18.143666831996065, 
+        "lon": -15.943385860511853
+    },
+    {
+        "id": 21,
+        "canonicalName": "بقالة الرزام ",
+        "variants": [
+            "بقالة الرزام ",
+            "بقالة الرزام"
+        ],
+        "lat": 18.141311288786664, 
+        "lon": -15.932025282852402
+    },
+    {
+        "id": 22,
+        "canonicalName": "مسجد التجانيين",
+        "variants": [
+            "مسجد التجانيين",
+            "مسيد التجانيين",
+            "مسجد التيجانيين",
+            "مسيد تيجانيين",
+            "مسيد تجانيين",
+            "مسيد تجانيين",
+            "مسيد تجانيين",
+            "mosquée tajaniyine"
+        ],
+        "lat": 18.12652037847593,
+        "lon":  -15.94289997173058
+    },
+    {
+        "id": 23,
+        "canonicalName": "وقفة صكوك",
+        "variants": [
+            "وقفة صكوك",
+            "وقفة الصكوك",
+            "وقفة صقوك",
+            "وقفة الصقوك",
+            "wakfat sokok",
+            "wakfat soukok",
+            "wakfat soukoukou"
+        ],
+        "lat": 18.12791968793475, 
+        "lon":  -15.938081203321675
+    }
+]
