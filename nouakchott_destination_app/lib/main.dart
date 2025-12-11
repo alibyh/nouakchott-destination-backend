@@ -66,8 +66,8 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
   // DEBUG
   final List<String> _debugLogs = [];
   
-  static const String apiUrl = 'http://192.168.0.117:3000/api/destination-from-audio';
-  // Provide via --dart-define=DIRECTIONS_API_KEY=your_key when building/running
+  static const String apiUrl = 'https//:nouakchott-destination-backend-production.up.railway.app/api/destination-from-audio';
+
   static const String directionsApiKey = 'AIzaSyCePYzzXuJDUE7P4s_7XiKHGvtmJQ8Uw-8';
   @override
   void initState() {
