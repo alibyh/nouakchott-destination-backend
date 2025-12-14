@@ -1,6 +1,10 @@
 # Hassaniya Arabic Destination Service
 
-A backend service that transcribes Hassaniya Arabic (Nouakchott dialect) audio and maps spoken destinations to coordinates of known places in Nouakchott, Mauritania.
+## Server-Only API Service
+
+A headless backend API service that transcribes Hassaniya Arabic (Nouakchott dialect) audio and maps spoken destinations to coordinates of known places in Nouakchott, Mauritania. This service is designed for external parties to integrate via HTTP API calls - send audio, receive coordinates.
+
+**Note**: This is a server-only service with no UI. The `nouakchott_destination_app/` directory contains a legacy Flutter client app that is not used by this service. The server is independent and can be used by any client application.
 
 ## Features
 
@@ -8,7 +12,7 @@ A backend service that transcribes Hassaniya Arabic (Nouakchott dialect) audio a
 - 🗺️ **Smart Matching**: Fuzzy matching algorithm to identify destinations from Hassaniya dialect
 - 🏗️ **Clean Architecture**: Modular TypeScript codebase with clear separation of concerns
 - 🔍 **Text Normalization**: Handles Arabic diacritics, character variations, and common intent phrases
-- 📍 **Nouakchott Gazetteer**: Pre-loaded with 12 districts and landmarks
+- 📍 **Nouakchott Gazetteer**: Pre-loaded with 23 districts and landmarks
 
 ## Tech Stack
 
@@ -34,7 +38,11 @@ src/
 ├── routes/
 │   └── destinationRoute.ts # HTTP endpoint handler
 └── server.ts               # Express app bootstrap
+
+nouakchott_destination_app/  # Legacy Flutter client (not used by server)
 ```
+
+**Note about Flutter App**: The `nouakchott_destination_app/` directory contains a Flutter mobile application that was previously used as a client for this service. This app is **not used** by the server service and is kept for reference/legacy purposes only. The server is completely independent and can be integrated by any client application via HTTP API calls.
 
 ## Installation
 
@@ -60,7 +68,7 @@ src/
    
    Create a `.env` file in the project root:
    ```bash
-   cp env.example.txt .env
+   cp .env.example .env
    ```
    
    Edit `.env` and add your OpenAI API key:
@@ -69,18 +77,7 @@ src/
    PORT=3000
    ```
 
-   Optional (recommended for production): protect the API with a bearer token:
-   ```env
-   AUTH_TOKEN=your_shared_secret
-   ```
-
-   Optional: basic in-memory rate limit (per IP):
-   ```env
-   RATE_LIMIT_WINDOW_MS=60000
-   RATE_LIMIT_MAX=60
-   ```
-
-## Usage
+## Server Setup
 
 ### Development Mode
 
@@ -114,6 +111,138 @@ Check code quality:
 npm run lint
 ```
 
+## API Usage for External Parties
+
+This service is designed to be integrated by external applications. Send audio files via HTTP POST request and receive destination coordinates in the response.
+
+### Response Format
+
+The API returns JSON with the following structure:
+
+**Success Response** (200 OK):
+```json
+{
+  "transcript": "نبغي نمشي توجنين",
+  "normalizedTranscript": "توجنين",
+  "destination": {
+    "id": 1,
+    "canonicalName": "توجنين",
+    "matchedVariant": "توجنين",
+    "lat": 18.0724,
+    "lon": -15.9099,
+    "confidence": 0.95,
+    "matchedBy": "fuzzy"
+  },
+  "error": null
+}
+```
+
+**Key Fields**:
+- `destination.lat` - **Latitude coordinate** (required for mapping)
+- `destination.lon` - **Longitude coordinate** (required for mapping)
+- `destination.canonicalName` - Official name of the destination
+- `destination.confidence` - Match confidence score (0.0 to 1.0)
+- `transcript` - Raw transcription from audio
+- `error` - Error message if destination not found (null on success)
+
+**No Match Response** (200 OK):
+```json
+{
+  "transcript": "نبغي نمشي مكان غير معروف",
+  "normalizedTranscript": "مكان غير معروف",
+  "destination": null,
+  "error": "لم نتمكن من تحديد وجهة في نواكشوط. حاول مرة أخرى بالتوضيح."
+}
+```
+
+### Integration Examples
+
+#### cURL
+
+```bash
+curl -X POST http://localhost:3000/api/destination-from-audio \
+  -F "audio=@/path/to/your/audio.m4a"
+```
+
+With pretty-printed JSON output:
+```bash
+curl -X POST http://localhost:3000/api/destination-from-audio \
+  -F "audio=@./test_audio/toujounine.m4a" \
+  | jq
+```
+
+#### JavaScript/TypeScript (Fetch API)
+
+```javascript
+async function getDestinationFromAudio(audioFile) {
+  const formData = new FormData();
+  formData.append('audio', audioFile);
+
+  const response = await fetch('http://localhost:3000/api/destination-from-audio', {
+    method: 'POST',
+    body: formData
+  });
+
+  const data = await response.json();
+  
+  if (data.destination) {
+    console.log('Destination:', data.destination.canonicalName);
+    console.log('Coordinates:', data.destination.lat, data.destination.lon);
+    return {
+      lat: data.destination.lat,
+      lon: data.destination.lon,
+      name: data.destination.canonicalName
+    };
+  } else {
+    console.error('No destination found:', data.error);
+    return null;
+  }
+}
+
+// Usage with file input
+const fileInput = document.querySelector('input[type="file"]');
+fileInput.addEventListener('change', async (e) => {
+  const audioFile = e.target.files[0];
+  const result = await getDestinationFromAudio(audioFile);
+  if (result) {
+    // Use coordinates: result.lat, result.lon
+  }
+});
+```
+
+#### Python (requests library)
+
+```python
+import requests
+
+def get_destination_from_audio(audio_file_path):
+    url = 'http://localhost:3000/api/destination-from-audio'
+    
+    with open(audio_file_path, 'rb') as audio_file:
+        files = {'audio': audio_file}
+        response = requests.post(url, files=files)
+        data = response.json()
+    
+    if data.get('destination'):
+        destination = data['destination']
+        print(f"Destination: {destination['canonicalName']}")
+        print(f"Coordinates: {destination['lat']}, {destination['lon']}")
+        return {
+            'lat': destination['lat'],
+            'lon': destination['lon'],
+            'name': destination['canonicalName']
+        }
+    else:
+        print(f"No destination found: {data.get('error')}")
+        return None
+
+# Usage
+result = get_destination_from_audio('./test_audio/toujounine.m4a')
+if result:
+    # Use coordinates: result['lat'], result['lon']
+    pass
+```
+
 ## API Reference
 
 ### Health Check
@@ -145,15 +274,18 @@ npm run lint
   "normalizedTranscript": "توجنين",
   "destination": {
     "id": 1,
-    "canonicalName": "Toujounine",
+    "canonicalName": "توجنين",
     "matchedVariant": "توجنين",
-    "lat": 18.0853,
-    "lon": -15.9785,
-    "confidence": 0.95
+    "lat": 18.0724,
+    "lon": -15.9099,
+    "confidence": 0.95,
+    "matchedBy": "fuzzy"
   },
   "error": null
 }
 ```
+
+**Important**: The `lat` and `lon` fields in the `destination` object are the coordinates you need for mapping/navigation. These are the primary return values from the API.
 
 **Response** (No match found):
 ```json
@@ -174,37 +306,6 @@ npm run lint
 }
 ```
 
-### Example cURL Command
-
-Test the endpoint with an audio file:
-
-```bash
-curl -X POST http://localhost:3000/api/destination-from-audio \
-  -F "audio=@/path/to/your/audio.m4a"
-```
-
-If you set `AUTH_TOKEN`, include it:
-
-```bash
-curl -X POST http://localhost:3000/api/destination-from-audio \
-  -H "Authorization: Bearer your_shared_secret" \
-  -F "audio=@/path/to/your/audio.m4a"
-```
-
-## Deploy (Docker)
-
-```bash
-docker build -t hassaniya-destination-api .
-docker run --rm -p 3000:3000 --env-file .env hassaniya-destination-api
-```
-
-Example with a recorded phrase "نبغي نمشي توجنين" (I want to go to Toujounine):
-
-```bash
-curl -X POST http://localhost:3000/api/destination-from-audio \
-  -F "audio=@./test_audio/toujounine.m4a" \
-  | jq
-```
 
 ## How It Works
 
@@ -226,26 +327,37 @@ Uses multiple strategies:
 - **Confidence threshold**: Only returns matches with ≥75% confidence
 
 ### 4. Response
-Returns the matched destination with coordinates, the variant that matched, and a confidence score.
+Returns the matched destination with **coordinates (lat/lon)**, the variant that matched, and a confidence score. The coordinates are the primary output for external integrations.
 
 ## Supported Destinations
 
-The current gazetteer includes 12 Nouakchott locations:
+The current gazetteer includes **23 Nouakchott locations** with coordinates:
 
-1. **Toujounine** (توجنين)
-2. **Teyaret** (تيارت)
-3. **Ksar** (كصر)
-4. **Tevragh Zeina** (تفرغ زينة)
-5. **Sebkha** (سبخة)
-6. **Dar Naim** (دار النعيم)
-7. **Arafat** (عرفات)
-8. **Carrefour** (كارفور)
-9. **Cinquième** (سانكيام)
-10. **Capitale** (كابيتال)
-11. **Port** (الميناء)
-12. **Marché Capitale** (سوق كابيتال)
+1. **توجنين** (Toujounine)
+2. **تيارت** (Teyaret)
+3. **لكصر** (Ksar)
+4. **تفرغ زينة** (Tevragh Zeina)
+5. **السبخة** (Sebkha)
+6. **دار النعيم** (Dar Naim)
+7. **عرفات** (Arafat)
+8. **عنكار دارالبركة** (Enkar Dar Al-Baraka)
+9. **سانكيام** (Cinquième)
+10. **Port - الميناء** (Port)
+11. **مرصة كابيتال** (Marché Capitale)
+12. **كارفور عين الطلح** (Carrefour Ain Talh)
+13. **سمعة منت أجدي** (Mint Jdey)
+14. **فور ولد سبرو** (Four Ould Sibrou)
+15. **كرفور بي أم دي** (Carrefour BMD)
+16. **مسجد ولد أحمدو** (Mosque Ould Ahmedou)
+17. **مستشفى نواكشوط العسكري** (Nouakchott Military Hospital)
+18. **مسجد ولد اموحود** (Mosque Ould Oumouhoud)
+19. **مجمع عباد الرحمان 1** (Complexe Ibadou Al-Rahman 1)
+20. **مجمع عباد الرحمان 3** (Complexe Ibadou Al-Rahman 3)
+21. **بقالة الرزام** (Bakala Al-Rizam)
+22. **مسجد التجانيين** (Mosque Al-Tijaniyine)
+23. **وقفة صكوك** (Wakfat Sokok)
 
-To add more destinations, edit `src/data/places.json` and include Arabic and Latin variants.
+Each destination includes latitude (`lat`) and longitude (`lon`) coordinates that are returned in the API response. To add more destinations, edit `src/data/places.json` and include Arabic and Latin variants.
 
 ## Configuration
 
@@ -259,9 +371,6 @@ Environment variables (`.env` file):
 | `OPENAI_TRANSCRIBE_MODEL` | Transcription model (e.g., `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`) | gpt-4o-transcribe |
 | `OPENAI_TRANSCRIBE_TEMPERATURE` | Temperature passed to transcription | 0 |
 | `OPENAI_TRANSCRIBE_FORCE_LANGUAGE_AR` | Force `language: ar` when true | true |
-| `AUTH_TOKEN` | If set, requires `Authorization: Bearer <token>` for `/api/*` | - |
-| `RATE_LIMIT_WINDOW_MS` | Rate limit window size in ms (per IP) | 60000 |
-| `RATE_LIMIT_MAX` | Max requests per window (per IP) | 60 |
 
 ## Error Codes
 

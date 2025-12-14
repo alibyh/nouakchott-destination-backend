@@ -35,11 +35,6 @@ const upload = multer({
 
 const router = Router();
 
-function pickClientErrorMessage(err: unknown): string {
-    if (err instanceof Error) return err.message;
-    return 'Unknown error';
-}
-
 /**
  * POST /api/destination-from-audio
  * 
@@ -59,12 +54,6 @@ router.post(
             }
 
             console.log(`[API] Processing audio file: ${req.file.originalname} (${req.file.size} bytes)`);
-            if (!req.file.buffer || req.file.buffer.length === 0) {
-                return res.status(400).json({
-                    error: 'EMPTY_FILE',
-                    message: 'Uploaded audio file is empty',
-                });
-            }
 
             // Step 1: Transcribe audio using Whisper
             let transcript: string;
@@ -75,7 +64,7 @@ router.post(
                 return res.status(500).json({
                     error: 'ASR_FAILED',
                     message: 'Failed to transcribe audio',
-                    details: pickClientErrorMessage(error),
+                    details: error instanceof Error ? error.message : 'Unknown error',
                 });
             }
 
@@ -90,21 +79,18 @@ router.post(
 
             if (!match) {
                 // No confident match found
-                const response = {
+                return res.status(200).json({
                     transcript,
                     normalizedTranscript,
                     destination: null,
                     error: 'لم نتمكن من تحديد وجهة في نواكشوط. حاول مرة أخرى بالتوضيح.',
-                };
-                console.log(`[API] No match found. Response JSON: ${JSON.stringify(response, null, 2)}`);
-                res.setHeader('Content-Type', 'application/json; charset=utf-8');
-                return res.status(200).json(response);
+                });
             }
 
             // Step 4: Return successful match
             console.log(`[API] Matched destination: ${match.place.canonicalName} (confidence: ${match.confidence.toFixed(2)}, method: ${match.matchedBy})`);
 
-            const response = {
+            return res.status(200).json({
                 transcript,
                 normalizedTranscript,
                 destination: {
@@ -117,11 +103,7 @@ router.post(
                     matchedBy: match.matchedBy, // 'fuzzy' or 'llm'
                 },
                 error: null,
-            };
-
-            console.log(`[API] Response JSON: ${JSON.stringify(response, null, 2)}`);
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            return res.status(200).json(response);
+            });
 
         } catch (error) {
             console.error('[API] Unexpected error:', error);

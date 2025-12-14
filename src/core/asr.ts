@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 import { config } from '../config/env';
-import { toFile } from 'openai/uploads';
 
 // Initialize OpenAI client with timeout
 const openai = new OpenAI({
@@ -64,12 +63,7 @@ export async function transcribeAudio(
     originalFilename?: string
 ): Promise<string> {
     try {
-        // Ensure we use gpt-4o-transcribe (not whisper-1) for better Arabic/Hassaniya accuracy
-        let selectedModel = config.openaiTranscribeModel || 'gpt-4o-transcribe';
-        if (selectedModel.toLowerCase() === 'whisper-1' || selectedModel.toLowerCase() === 'whisper') {
-            console.warn('[ASR] whisper-1 detected, using gpt-4o-transcribe instead');
-            selectedModel = 'gpt-4o-transcribe';
-        }
+        const selectedModel = config.openaiTranscribeModel || 'gpt-4o-transcribe';
         const temperature = Number.isFinite(config.openaiTranscribeTemperature)
             ? config.openaiTranscribeTemperature
             : 0;
@@ -85,13 +79,13 @@ export async function transcribeAudio(
             ? `audio/${extension}`
             : mimeType;
 
-        // Create a File-like object from the buffer (Node-safe; no DOM File needed)
-        const file = await toFile(buffer, filename, { type: actualMimeType });
+        // Create a File-like object from the buffer
+        const file = new File([buffer], filename, { type: actualMimeType });
 
         const prompt = buildNouakchottTranscriptionPrompt(DESTINATIONS);
 
         console.log(
-            `[ASR] Preparing transcription: bytes=${buffer.length}, mime=${mimeType}, resolvedMime=${actualMimeType}, ext=${extension}, model=${selectedModel} (gpt-4o-transcribe for best Arabic accuracy), temperature=${temperature}, language=${forceLanguageAr ? 'ar' : 'auto'}`
+            `[ASR] Preparing transcription: bytes=${buffer.length}, mime=${mimeType}, resolvedMime=${actualMimeType}, ext=${extension}, model=${selectedModel}, temperature=${temperature}, language=${forceLanguageAr ? 'ar' : 'auto'}`
         );
         if (prompt) {
             console.log(`[ASR] Using Nouakchott prompt with ${DESTINATIONS.length} destinations`);
