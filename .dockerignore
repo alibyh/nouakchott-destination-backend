@@ -1,0 +1,10 @@
+node_modules
+dist
+npm-debug.log
+Dockerfile
+.git
+.DS_Store
+nouakchott_destination_app
+clips
+
+

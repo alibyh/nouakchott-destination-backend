@@ -35,6 +35,11 @@ const upload = multer({
 
 const router = Router();
 
+function pickClientErrorMessage(err: unknown): string {
+    if (err instanceof Error) return err.message;
+    return 'Unknown error';
+}
+
 /**
  * POST /api/destination-from-audio
  * 
@@ -54,6 +59,12 @@ router.post(
             }
 
             console.log(`[API] Processing audio file: ${req.file.originalname} (${req.file.size} bytes)`);
+            if (!req.file.buffer || req.file.buffer.length === 0) {
+                return res.status(400).json({
+                    error: 'EMPTY_FILE',
+                    message: 'Uploaded audio file is empty',
+                });
+            }
 
             // Step 1: Transcribe audio using Whisper
             let transcript: string;
@@ -64,7 +75,7 @@ router.post(
                 return res.status(500).json({
                     error: 'ASR_FAILED',
                     message: 'Failed to transcribe audio',
-                    details: error instanceof Error ? error.message : 'Unknown error',
+                    details: pickClientErrorMessage(error),
                 });
             }
 

@@ -60,13 +60,24 @@ src/
    
    Create a `.env` file in the project root:
    ```bash
-   cp .env.example .env
+   cp env.example.txt .env
    ```
    
    Edit `.env` and add your OpenAI API key:
    ```env
    OPENAI_API_KEY=sk-your-actual-openai-api-key-here
    PORT=3000
+   ```
+
+   Optional (recommended for production): protect the API with a bearer token:
+   ```env
+   AUTH_TOKEN=your_shared_secret
+   ```
+
+   Optional: basic in-memory rate limit (per IP):
+   ```env
+   RATE_LIMIT_WINDOW_MS=60000
+   RATE_LIMIT_MAX=60
    ```
 
 ## Usage
@@ -172,6 +183,21 @@ curl -X POST http://localhost:3000/api/destination-from-audio \
   -F "audio=@/path/to/your/audio.m4a"
 ```
 
+If you set `AUTH_TOKEN`, include it:
+
+```bash
+curl -X POST http://localhost:3000/api/destination-from-audio \
+  -H "Authorization: Bearer your_shared_secret" \
+  -F "audio=@/path/to/your/audio.m4a"
+```
+
+## Deploy (Docker)
+
+```bash
+docker build -t hassaniya-destination-api .
+docker run --rm -p 3000:3000 --env-file .env hassaniya-destination-api
+```
+
 Example with a recorded phrase "نبغي نمشي توجنين" (I want to go to Toujounine):
 
 ```bash
@@ -233,6 +259,9 @@ Environment variables (`.env` file):
 | `OPENAI_TRANSCRIBE_MODEL` | Transcription model (e.g., `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`) | gpt-4o-transcribe |
 | `OPENAI_TRANSCRIBE_TEMPERATURE` | Temperature passed to transcription | 0 |
 | `OPENAI_TRANSCRIBE_FORCE_LANGUAGE_AR` | Force `language: ar` when true | true |
+| `AUTH_TOKEN` | If set, requires `Authorization: Bearer <token>` for `/api/*` | - |
+| `RATE_LIMIT_WINDOW_MS` | Rate limit window size in ms (per IP) | 60000 |
+| `RATE_LIMIT_MAX` | Max requests per window (per IP) | 60 |
 
 ## Error Codes
 

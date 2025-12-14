@@ -143,16 +143,16 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
   void _addDepartureMarker() {
     setState(() {
       _markers.removeWhere((m) => m.markerId.value == 'departure');
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('departure'),
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('departure'),
           position: _currentDeparturePoint,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
           infoWindow: InfoWindow(
             title: _useCurrentLocation ? 'Current Location' : 'Departure',
           ),
-        ),
-      );
+      ),
+    );
     });
   }
 
@@ -435,8 +435,8 @@ class _DestinationMapPageState extends State<DestinationMapPage> with SingleTick
         _markers.removeWhere((m) => m.markerId.value == 'destination');
       });
       _addDepartureMarker();
-      _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(_departurePoint, 12),
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(_departurePoint, 12),
       );
       _log('Switched to fixed departure point');
     } else {

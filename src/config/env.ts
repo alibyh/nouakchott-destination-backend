@@ -10,6 +10,9 @@ interface Config {
     openaiTranscribeModel: string;
     openaiTranscribeTemperature: number;
     openaiTranscribeForceLanguageAr: boolean;
+    authToken?: string;
+    rateLimitWindowMs: number;
+    rateLimitMax: number;
 }
 
 function parseBoolean(envValue: string | undefined, defaultValue: boolean): boolean {
@@ -46,6 +49,10 @@ function validateEnv(): Config {
         true
     );
 
+    const authToken = process.env.AUTH_TOKEN?.trim() || undefined;
+    const rateLimitWindowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10);
+    const rateLimitMax = parseInt(process.env.RATE_LIMIT_MAX || '60', 10);
+
     return {
         openaiApiKey,
         port,
@@ -53,6 +60,9 @@ function validateEnv(): Config {
         openaiTranscribeModel,
         openaiTranscribeTemperature,
         openaiTranscribeForceLanguageAr,
+        authToken,
+        rateLimitWindowMs,
+        rateLimitMax,
     };
 }
 

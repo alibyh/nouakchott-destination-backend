@@ -49,7 +49,7 @@ dependencies:
   
   # Permissions
   permission_handler: ^11.3.1
-  
+
   # Location services
   geolocator: ^13.0.1
 

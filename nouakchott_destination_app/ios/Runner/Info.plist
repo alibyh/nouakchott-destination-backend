@@ -47,6 +47,8 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs microphone access to record your voice for destination search.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to set the pickup point and show routes.</string>
 	<!-- Allow HTTP connections for local development -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
