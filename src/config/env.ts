@@ -40,7 +40,13 @@ function validateEnv(): Config {
     const port = parseInt(process.env.PORT || '3000', 10);
     const maxFileSize = parseInt(process.env.MAX_FILE_SIZE || '26214400', 10); // 25MB default
 
-    const openaiTranscribeModel = process.env.OPENAI_TRANSCRIBE_MODEL?.trim() || 'gpt-4o-transcribe';
+    let openaiTranscribeModel = process.env.OPENAI_TRANSCRIBE_MODEL?.trim() || 'gpt-4o-transcribe';
+    
+    // Ensure we're using gpt-4o-transcribe, not whisper-1
+    if (openaiTranscribeModel.toLowerCase() === 'whisper-1' || openaiTranscribeModel.toLowerCase() === 'whisper') {
+        console.warn('[Config] whisper-1 detected, defaulting to gpt-4o-transcribe for better accuracy');
+        openaiTranscribeModel = 'gpt-4o-transcribe';
+    }
     const openaiTranscribeTemperature = Number.isNaN(parseFloat(process.env.OPENAI_TRANSCRIBE_TEMPERATURE || ''))
         ? 0
         : parseFloat(process.env.OPENAI_TRANSCRIBE_TEMPERATURE || '0');

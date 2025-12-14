@@ -64,7 +64,12 @@ export async function transcribeAudio(
     originalFilename?: string
 ): Promise<string> {
     try {
-        const selectedModel = config.openaiTranscribeModel || 'gpt-4o-transcribe';
+        // Ensure we use gpt-4o-transcribe (not whisper-1) for better Arabic/Hassaniya accuracy
+        let selectedModel = config.openaiTranscribeModel || 'gpt-4o-transcribe';
+        if (selectedModel.toLowerCase() === 'whisper-1' || selectedModel.toLowerCase() === 'whisper') {
+            console.warn('[ASR] whisper-1 detected, using gpt-4o-transcribe instead');
+            selectedModel = 'gpt-4o-transcribe';
+        }
         const temperature = Number.isFinite(config.openaiTranscribeTemperature)
             ? config.openaiTranscribeTemperature
             : 0;
@@ -86,7 +91,7 @@ export async function transcribeAudio(
         const prompt = buildNouakchottTranscriptionPrompt(DESTINATIONS);
 
         console.log(
-            `[ASR] Preparing transcription: bytes=${buffer.length}, mime=${mimeType}, resolvedMime=${actualMimeType}, ext=${extension}, model=${selectedModel}, temperature=${temperature}, language=${forceLanguageAr ? 'ar' : 'auto'}`
+            `[ASR] Preparing transcription: bytes=${buffer.length}, mime=${mimeType}, resolvedMime=${actualMimeType}, ext=${extension}, model=${selectedModel} (gpt-4o-transcribe for best Arabic accuracy), temperature=${temperature}, language=${forceLanguageAr ? 'ar' : 'auto'}`
         );
         if (prompt) {
             console.log(`[ASR] Using Nouakchott prompt with ${DESTINATIONS.length} destinations`);

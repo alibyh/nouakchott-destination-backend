@@ -94,7 +94,7 @@ router.post(
                     transcript,
                     normalizedTranscript,
                     destination: null,
-                    error: 'لم نتمكن من تحديد وجهة في نواكشوط. حاول مرة أخرى بالتوضيحkj.',
+                    error: 'لم نتمكن من تحديد وجهة في نواكشوط. حاول مرة أخرى بالتوضيح.',
                 };
                 console.log(`[API] No match found. Response JSON: ${JSON.stringify(response, null, 2)}`);
                 res.setHeader('Content-Type', 'application/json; charset=utf-8');
