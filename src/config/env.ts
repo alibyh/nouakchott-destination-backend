@@ -10,6 +10,10 @@ interface Config {
     openaiTranscribeModel: string;
     openaiTranscribeTemperature: number;
     openaiTranscribeForceLanguageAr: boolean;
+    saveIncomingAudio: boolean;
+    savedAudioDir: string;
+    savedAudioTtlSeconds: number;
+    debugDownloadToken: string | null;
 }
 
 function parseBoolean(envValue: string | undefined, defaultValue: boolean): boolean {
@@ -46,6 +50,11 @@ function validateEnv(): Config {
         true
     );
 
+    const saveIncomingAudio = parseBoolean(process.env.SAVE_INCOMING_AUDIO, false);
+    const savedAudioDir = process.env.SAVED_AUDIO_DIR?.trim() || '/tmp/saved-audio';
+    const savedAudioTtlSeconds = parseInt(process.env.SAVED_AUDIO_TTL_SECONDS || '3600', 10);
+    const debugDownloadToken = process.env.DEBUG_DOWNLOAD_TOKEN?.trim() || null;
+
     return {
         openaiApiKey,
         port,
@@ -53,6 +62,10 @@ function validateEnv(): Config {
         openaiTranscribeModel,
         openaiTranscribeTemperature,
         openaiTranscribeForceLanguageAr,
+        saveIncomingAudio,
+        savedAudioDir,
+        savedAudioTtlSeconds: Number.isFinite(savedAudioTtlSeconds) ? savedAudioTtlSeconds : 3600,
+        debugDownloadToken,
     };
 }
 

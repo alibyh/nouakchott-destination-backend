@@ -5,6 +5,9 @@ import { resolveDestination, Place } from '../core/destinationMatcher';
 import { normalizeText } from '../core/normalization';
 import { config } from '../config/env';
 import placesData from '../data/places.json';
+import path from 'path';
+import crypto from 'crypto';
+import { promises as fs } from 'fs';
 
 // Load places gazetteer
 const places: Place[] = placesData as Place[];
@@ -35,6 +38,73 @@ const upload = multer({
 
 const router = Router();
 
+function safeBasename(filename: string): string {
+    return path.basename(filename).replace(/[^\w.\-]+/g, '_');
+}
+
+function guessExtension(originalname: string, mimetype: string): string {
+    const extFromName = path.extname(originalname || '').toLowerCase();
+    if (extFromName && extFromName.length <= 10) {
+        return extFromName;
+    }
+    const mt = (mimetype || '').toLowerCase();
+    if (mt.includes('wav')) return '.wav';
+    if (mt.includes('webm')) return '.webm';
+    if (mt.includes('ogg')) return '.ogg';
+    if (mt.includes('mpeg') || mt.includes('mp3')) return '.mp3';
+    if (mt.includes('mp4') || mt.includes('m4a') || mt.includes('aac') || mt.includes('octet-stream')) return '.m4a';
+    return '.m4a';
+}
+
+async function maybeSaveIncomingAudio(file: Express.Multer.File): Promise<{ filename: string; path: string } | null> {
+    if (!config.saveIncomingAudio) return null;
+
+    await fs.mkdir(config.savedAudioDir, { recursive: true });
+
+    const original = safeBasename(file.originalname || 'audio');
+    const ext = guessExtension(file.originalname, file.mimetype);
+    const rand = crypto.randomBytes(6).toString('hex');
+    const ts = Date.now();
+    const savedFilename = `${ts}_${rand}_${original.replace(path.extname(original), '')}${ext}`;
+    const savedPath = path.join(config.savedAudioDir, savedFilename);
+
+    await fs.writeFile(savedPath, file.buffer);
+
+    const ttlMs = Math.max(0, config.savedAudioTtlSeconds) * 1000;
+    if (ttlMs > 0) {
+        setTimeout(() => {
+            fs.unlink(savedPath).catch(() => undefined);
+        }, ttlMs).unref?.();
+    }
+
+    return { filename: savedFilename, path: savedPath };
+}
+
+router.get('/debug/audio/:filename', async (req: Request, res: Response) => {
+    // Token-protected: set DEBUG_DOWNLOAD_TOKEN in env and pass x-debug-token header.
+    if (!config.saveIncomingAudio) {
+        return res.status(404).json({ error: 'NOT_FOUND' });
+    }
+    if (!config.debugDownloadToken) {
+        return res.status(404).json({ error: 'NOT_FOUND' });
+    }
+    const token = String(req.header('x-debug-token') || '');
+    if (token !== config.debugDownloadToken) {
+        return res.status(404).json({ error: 'NOT_FOUND' });
+    }
+
+    const filename = safeBasename(String(req.params.filename || ''));
+    const fullPath = path.join(config.savedAudioDir, filename);
+
+    try {
+        await fs.access(fullPath);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        return res.sendFile(fullPath);
+    } catch {
+        return res.status(404).json({ error: 'NOT_FOUND' });
+    }
+});
+
 /**
  * POST /api/destination-from-audio
  * 
@@ -55,6 +125,12 @@ router.post(
 
             console.log(`[API] Processing audio file: ${req.file.originalname} (${req.file.size} bytes)`);
 
+            // Optional debug: save the received audio so you can verify what the server actually got.
+            const saved = await maybeSaveIncomingAudio(req.file);
+            if (saved) {
+                console.log(`[Debug] Saved incoming audio: ${saved.path}`);
+            }
+
             // Step 1: Transcribe audio using Whisper
             let transcript: string;
             try {
@@ -65,6 +141,12 @@ router.post(
                     error: 'ASR_FAILED',
                     message: 'Failed to transcribe audio',
                     details: error instanceof Error ? error.message : 'Unknown error',
+                    savedAudio: saved
+                        ? {
+                            filename: saved.filename,
+                            downloadPath: `/api/debug/audio/${saved.filename}`,
+                        }
+                        : null,
                 });
             }
 
@@ -84,6 +166,12 @@ router.post(
                     normalizedTranscript,
                     destination: null,
                     error: 'لم نتمكن من تحديد وجهة في نواكشوط. حاول مرة أخرى بالتوضيح.',
+                    savedAudio: saved
+                        ? {
+                            filename: saved.filename,
+                            downloadPath: `/api/debug/audio/${saved.filename}`,
+                        }
+                        : null,
                 });
             }
 
@@ -103,6 +191,12 @@ router.post(
                     matchedBy: match.matchedBy, // 'fuzzy' or 'llm'
                 },
                 error: null,
+                savedAudio: saved
+                    ? {
+                        filename: saved.filename,
+                        downloadPath: `/api/debug/audio/${saved.filename}`,
+                    }
+                    : null,
             });
 
         } catch (error) {

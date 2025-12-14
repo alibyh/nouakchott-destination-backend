@@ -159,14 +159,21 @@ The API returns JSON with the following structure:
 
 #### cURL
 
+**Production**:
+```bash
+curl -X POST https://nouakchott-destination-backend-production.up.railway.app/api/destination-from-audio \
+  -F "audio=@/path/to/your/audio.m4a"
+```
+
+**Local Development**:
 ```bash
 curl -X POST http://localhost:3000/api/destination-from-audio \
   -F "audio=@/path/to/your/audio.m4a"
 ```
 
-With pretty-printed JSON output:
+With pretty-printed JSON output (Production):
 ```bash
-curl -X POST http://localhost:3000/api/destination-from-audio \
+curl -X POST https://nouakchott-destination-backend-production.up.railway.app/api/destination-from-audio \
   -F "audio=@./test_audio/toujounine.m4a" \
   | jq
 ```
@@ -174,11 +181,15 @@ curl -X POST http://localhost:3000/api/destination-from-audio \
 #### JavaScript/TypeScript (Fetch API)
 
 ```javascript
+// Production URL
+const API_URL = 'https://nouakchott-destination-backend-production.up.railway.app/api/destination-from-audio';
+// For local development, use: 'http://localhost:3000/api/destination-from-audio'
+
 async function getDestinationFromAudio(audioFile) {
   const formData = new FormData();
   formData.append('audio', audioFile);
 
-  const response = await fetch('http://localhost:3000/api/destination-from-audio', {
+  const response = await fetch(API_URL, {
     method: 'POST',
     body: formData
   });
@@ -215,8 +226,12 @@ fileInput.addEventListener('change', async (e) => {
 ```python
 import requests
 
+# Production URL
+API_URL = 'https://nouakchott-destination-backend-production.up.railway.app/api/destination-from-audio'
+# For local development, use: 'http://localhost:3000/api/destination-from-audio'
+
 def get_destination_from_audio(audio_file_path):
-    url = 'http://localhost:3000/api/destination-from-audio'
+    url = API_URL
     
     with open(audio_file_path, 'rb') as audio_file:
         files = {'audio': audio_file}
@@ -243,11 +258,31 @@ if result:
     pass
 ```
 
+## Deployment
+
+### Railway Production Deployment
+
+The service is deployed on Railway at:
+**Production URL**: `https://nouakchott-destination-backend-production.up.railway.app`
+
+The API is publicly accessible at this URL. Use this endpoint for production integrations.
+
+### Local Development
+
+For local development, the server runs on `http://localhost:3000` (or the PORT specified in `.env`).
+
 ## API Reference
+
+### Base URLs
+
+- **Production**: `https://nouakchott-destination-backend-production.up.railway.app`
+- **Local Development**: `http://localhost:3000`
 
 ### Health Check
 
 **Endpoint**: `GET /health`
+
+**Production**: `https://nouakchott-destination-backend-production.up.railway.app/health`
 
 **Response**:
 ```json
@@ -260,6 +295,8 @@ if result:
 ### Destination from Audio
 
 **Endpoint**: `POST /api/destination-from-audio`
+
+**Production**: `https://nouakchott-destination-backend-production.up.railway.app/api/destination-from-audio`
 
 **Request**:
 - **Content-Type**: `multipart/form-data`
@@ -359,9 +396,42 @@ The current gazetteer includes **23 Nouakchott locations** with coordinates:
 
 Each destination includes latitude (`lat`) and longitude (`lon`) coordinates that are returned in the API response. To add more destinations, edit `src/data/places.json` and include Arabic and Latin variants.
 
+## Railway Deployment
+
+The service is deployed on Railway at:
+**Production URL**: `https://nouakchott-destination-backend-production.up.railway.app`
+
+### Railway Environment Variables
+
+Set these in your Railway project settings:
+
+- `OPENAI_API_KEY` - Your OpenAI API key (required)
+- `PORT` - Railway will set this automatically (usually 3000 or from `$PORT`)
+- `MAX_FILE_SIZE` - Max audio file size in bytes (default: 26214400 = 25MB)
+- `OPENAI_TRANSCRIBE_MODEL` - Transcription model (default: gpt-4o-transcribe)
+- `OPENAI_TRANSCRIBE_TEMPERATURE` - Temperature for transcription (default: 0)
+- `OPENAI_TRANSCRIBE_FORCE_LANGUAGE_AR` - Force Arabic language (default: true)
+
+### Railway Build Settings
+
+Railway will automatically:
+- Detect Node.js project
+- Run `npm install` to install dependencies
+- Run `npm run build` to compile TypeScript
+- Run `npm start` to start the server
+
+Make sure your `package.json` has the correct start script:
+```json
+{
+  "scripts": {
+    "start": "node dist/server.js"
+  }
+}
+```
+
 ## Configuration
 
-Environment variables (`.env` file):
+Environment variables (`.env` file for local development):
 
 | Variable | Description | Default |
 |----------|-------------|---------|
