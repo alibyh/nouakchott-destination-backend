@@ -90,18 +90,21 @@ router.post(
 
             if (!match) {
                 // No confident match found
-                return res.status(200).json({
+                const response = {
                     transcript,
                     normalizedTranscript,
                     destination: null,
-                    error: 'لم نتمكن من تحديد وجهة في نواكشوط. حاول مرة أخرى بالتوضيح.',
-                });
+                    error: 'لم نتمكن من تحديد وجهة في نواكشوط. حاول مرة أخرى بالتوضيحkj.',
+                };
+                console.log(`[API] No match found. Response JSON: ${JSON.stringify(response, null, 2)}`);
+                res.setHeader('Content-Type', 'application/json; charset=utf-8');
+                return res.status(200).json(response);
             }
 
             // Step 4: Return successful match
             console.log(`[API] Matched destination: ${match.place.canonicalName} (confidence: ${match.confidence.toFixed(2)}, method: ${match.matchedBy})`);
 
-            return res.status(200).json({
+            const response = {
                 transcript,
                 normalizedTranscript,
                 destination: {
@@ -114,7 +117,11 @@ router.post(
                     matchedBy: match.matchedBy, // 'fuzzy' or 'llm'
                 },
                 error: null,
-            });
+            };
+
+            console.log(`[API] Response JSON: ${JSON.stringify(response, null, 2)}`);
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            return res.status(200).json(response);
 
         } catch (error) {
             console.error('[API] Unexpected error:', error);
