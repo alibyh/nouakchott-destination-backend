@@ -38,8 +38,9 @@ export async function matchWithLLM(
       Available destinations in Nouakchott:
       ${destinationsList}
       
-      Task: Determine which destination the user most likely intended to say. Only pick from the provided Nouakchott list. If you are not confident or the name is not in Nouakchott search for the destination in google maps, if nothing is found respond with destinationId: null and confidence: 0 and tell the user to try again. 
-      Loop through all the destination until the confidence is over 90%, don’t just stop at the first destination you find.
+      Task: Determine which destination the user most likely intended to say. Only pick from the provided Nouakchott list. If you are not confident or the name is not in the list, respond with destinationId: null and confidence: 0.
+      
+      IMPORTANT: Only match destinations that are clearly in the provided list. Do not make up or guess destinations. If unsure, return null.
       
       IMPORTANT - Hassaniya Filler Words & Intent Phrases to IGNORE:
       - "نبغي نمشي" (nabghi nemshi) - I want to go

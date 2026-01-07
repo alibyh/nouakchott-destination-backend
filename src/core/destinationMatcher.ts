@@ -1,6 +1,7 @@
 import { normalizeText, generateNGrams } from './normalization';
 import { similarity, containsSimilarity } from './similarity';
 import { matchWithLLM } from './llmMatcher';
+import { searchGoogleMaps } from './googleMapsSearch';
 
 export interface Place {
     id: number;
@@ -14,18 +15,19 @@ export interface DestinationMatch {
     place: Place;
     matchedVariant: string;
     confidence: number;
-    matchedBy?: 'fuzzy' | 'llm'; // Track which method found the match
+    matchedBy?: 'fuzzy' | 'llm' | 'google'; // Track which method found the match
 }
 
 // Minimum confidence threshold to consider a fuzzy match valid
 const CONFIDENCE_THRESHOLD = 0.75;
 
 /**
- * Resolve a destination from a transcript using hybrid fuzzy + LLM matching
+ * Resolve a destination from a transcript using hybrid matching with Google Maps fallback
  * 
  * Strategy:
- * 1. Try fuzzy matching first (fast, free)
- * 2. If confidence < threshold, fallback to LLM (slower, smarter)
+ * 1. Try fuzzy matching first (fast, free) - requires confidence >= 0.75
+ * 2. If confidence < threshold, fallback to LLM (slower, smarter) - requires confidence >= 0.85
+ * 3. If no match found in local list, try Google Maps search (external places)
  */
 export async function resolveDestination(
     transcript: string,
@@ -104,7 +106,7 @@ export async function resolveDestination(
     try {
         const llmResult = await matchWithLLM(transcript, places);
 
-        if (llmResult.destinationId !== null && llmResult.confidence >= 0.6) {
+        if (llmResult.destinationId !== null && llmResult.confidence >= 0.85) {
             // Find the place by ID
             const matchedPlace = places.find(p => p.id === llmResult.destinationId);
 
@@ -120,7 +122,33 @@ export async function resolveDestination(
         }
     } catch (error) {
         console.error('[Matcher] LLM fallback error:', error);
-        // Continue to return null if LLM fails
+        // Continue to Google Maps search if LLM fails
+    }
+
+    // If no match found in local list or confidence is low, try Google Maps
+    console.log(`[Matcher] No match found in local list. Trying Google Maps search...`);
+    try {
+        const googleResult = await searchGoogleMaps(transcript);
+        
+        if (googleResult) {
+            // Return a dynamic place from Google Maps
+            // Use ID -1 to indicate it's an external place
+            console.log(`[Matcher] Google Maps match found: ${googleResult.name} (${googleResult.lat}, ${googleResult.lon})`);
+            return {
+                place: {
+                    id: -1, // Special ID for external places from Google Maps
+                    canonicalName: googleResult.name,
+                    variants: [googleResult.name, transcript],
+                    lat: googleResult.lat,
+                    lon: googleResult.lon,
+                },
+                matchedVariant: googleResult.name,
+                confidence: 0.7, // Lower confidence for external matches
+                matchedBy: 'google',
+            };
+        }
+    } catch (error) {
+        console.error('[Matcher] Google Maps search error:', error);
     }
 
     return null;

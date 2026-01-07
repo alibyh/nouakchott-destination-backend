@@ -14,6 +14,7 @@ interface Config {
     savedAudioDir: string;
     savedAudioTtlSeconds: number;
     debugDownloadToken: string | null;
+    googleMapsApiKey: string | null;
 }
 
 function parseBoolean(envValue: string | undefined, defaultValue: boolean): boolean {
@@ -54,6 +55,7 @@ function validateEnv(): Config {
     const savedAudioDir = process.env.SAVED_AUDIO_DIR?.trim() || '/tmp/saved-audio';
     const savedAudioTtlSeconds = parseInt(process.env.SAVED_AUDIO_TTL_SECONDS || '3600', 10);
     const debugDownloadToken = process.env.DEBUG_DOWNLOAD_TOKEN?.trim() || null;
+    const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY?.trim() || null;
 
     return {
         openaiApiKey,
@@ -66,6 +68,7 @@ function validateEnv(): Config {
         savedAudioDir,
         savedAudioTtlSeconds: Number.isFinite(savedAudioTtlSeconds) ? savedAudioTtlSeconds : 3600,
         debugDownloadToken,
+        googleMapsApiKey,
     };
 }
 

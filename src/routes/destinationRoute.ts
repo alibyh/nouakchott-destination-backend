@@ -178,17 +178,20 @@ router.post(
             // Step 4: Return successful match
             console.log(`[API] Matched destination: ${match.place.canonicalName} (confidence: ${match.confidence.toFixed(2)}, method: ${match.matchedBy})`);
 
+            // Handle external places from Google Maps (ID = -1)
+            const destinationId = match.place.id === -1 ? null : match.place.id;
+
             return res.status(200).json({
                 transcript,
                 normalizedTranscript,
                 destination: {
-                    id: match.place.id,
+                    id: destinationId, // null for Google Maps results
                     canonicalName: match.place.canonicalName,
                     matchedVariant: match.matchedVariant,
                     lat: match.place.lat,
                     lon: match.place.lon,
                     confidence: match.confidence,
-                    matchedBy: match.matchedBy, // 'fuzzy' or 'llm'
+                    matchedBy: match.matchedBy, // 'fuzzy', 'llm', or 'google'
                 },
                 error: null,
                 savedAudio: saved
