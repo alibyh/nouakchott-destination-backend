@@ -31,38 +31,40 @@ export async function matchWithLLM(
       )
       .join("\n");
 
-    const prompt = `You are helping match spoken Hassaniya (Mauritanian dialect) destinations to known areas in Nouakchott, Mauritania.
+      const prompt = `You are helping match spoken Hassaniya (Mauritanian dialect) destinations to known areas in Nouakchott, Mauritania.
 
-The user said (transcribed via Whisper): "${transcript}"
-
-Available destinations in Nouakchott:
-${destinationsList}
-
-Task: Determine which destination the user most likely intended to say. Only pick from the provided Nouakchott list. If you are not confident or the name is not in Nouakchott, respond with destinationId: null and confidence: 0 and tell the user to try again.
-
-IMPORTANT - Hassaniya Filler Words & Intent Phrases to IGNORE:
-- "نبغي نمشي" (nabghi nemshi) - I want to go
-- "باغي نمشي" (baghi nemshi) - I want to go
-- "بغيت نروح" (bghit nrouh) - I want to go
-- "ان گايس" (ana gayes) - I’m going to
-- "ندور كورس گايس" (ndor course gayes ) - i want a ride to
-- "ندور كورس واعد" (ndor course waiid) - i want a ride going to
-
-FOCUS ONLY on the actual destination name, ignoring all intent phrases and filler words.
-
-Consider:
-1. Phonetic similarity (how words sound in Arabic/Hassaniya)
-2. Common ASR transcription errors (e.g., "كرافور" vs "كارفور")
-3. Hassaniya dialect variations
-4. Extract core destination from surrounding filler words
-
-
-Respond with JSON only:
-{
-  "destinationId": <number or null if no match>,
-  "confidence": <0.0 to 1.0>,
-  "reasoning": "<brief explanation; if null, say not sure, ask user to try again>"
-}`;
+      The user said (transcribed via Whisper): "${transcript}"
+      
+      Available destinations in Nouakchott:
+      ${destinationsList}
+      
+      Task: Determine which destination the user most likely intended to say. Only pick from the provided Nouakchott list. If you are not confident or the name is not in Nouakchott search for the destination in google maps, if nothing is found respond with destinationId: null and confidence: 0 and tell the user to try again. 
+      Loop through all the destination until the confidence is over 90%, don’t just stop at the first destination you find.
+      
+      IMPORTANT - Hassaniya Filler Words & Intent Phrases to IGNORE:
+      - "نبغي نمشي" (nabghi nemshi) - I want to go
+      - "باغي نمشي" (baghi nemshi) - I want to go
+      - "بغيت نروح" (bghit nrouh) - I want to go
+      - "ان گايس" (ana gayes) - I’m going to
+      - "ندور كورس گايس" (ndor course gayes ) - i want a ride to
+      - "ندور كورس واعد" (ndor course waiid) - i want a ride going to
+      
+      FOCUS ONLY on the actual destination name, ignoring all intent phrases and filler words.
+      
+      Consider:
+      1. Phonetic similarity (how words sound in Arabic/Hassaniya)
+      2. Common ASR transcription errors (e.g., "كرافور" vs "كارفور")
+      3. Hassaniya dialect variations
+      4. Extract core destination from surrounding filler words
+      
+      
+      Respond with JSON only:
+      {
+        "destinationId": <number or null if no match>,
+        "confidence": <0.0 to 1.0>,
+        "reasoning": "<brief explanation; if null, say not sure, ask user to try again>"
+      }`;
+      
 
     console.log("[LLM] Sending transcript to GPT for intelligent matching...");
 
