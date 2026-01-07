@@ -70,6 +70,11 @@ export async function searchGoogleMaps(
             console.log(`[GoogleMaps] No results found. Status: ${data.status}`);
             if (data.error_message) {
                 console.log(`[GoogleMaps] Error message: ${data.error_message}`);
+                
+                // If billing not enabled, log warning but don't fail completely
+                if (data.status === 'REQUEST_DENIED' && data.error_message.includes('Billing')) {
+                    console.warn('[GoogleMaps] Billing not enabled. Please enable billing in Google Cloud Console to use Google Maps search.');
+                }
             }
         }
 

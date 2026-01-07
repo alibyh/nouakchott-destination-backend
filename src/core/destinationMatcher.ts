@@ -19,7 +19,7 @@ export interface DestinationMatch {
 }
 
 // Minimum confidence threshold to consider a fuzzy match valid
-const CONFIDENCE_THRESHOLD = 0.75;
+const CONFIDENCE_THRESHOLD = 0.80;
 
 /**
  * Resolve a destination from a transcript using hybrid matching with Google Maps fallback
@@ -39,6 +39,12 @@ export async function resolveDestination(
 
     // Normalize the transcript
     const normalizedTranscript = normalizeText(transcript);
+
+    // Skip very short transcripts (likely noise or incomplete)
+    if (normalizedTranscript.length < 3) {
+        console.log(`[Matcher] Transcript too short: "${normalizedTranscript}"`);
+        return null;
+    }
 
     // Generate candidate spans (tokens and n-grams)
     const tokens = normalizedTranscript.split(/\s+/).filter(t => t.length > 0);

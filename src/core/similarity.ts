@@ -75,9 +75,21 @@ export function containsSimilarity(haystack: string, needle: string): number {
         return 0;
     }
 
-    // Exact substring match
+    // Require minimum length to avoid false matches
+    if (needle.length < 3) {
+        return 0;
+    }
+
+    // Exact substring match - but require it to be a significant portion
     if (haystack.includes(needle)) {
-        return 0.95;
+        // Only return high confidence if the needle is at least 50% of haystack length
+        // or if it's a complete word match
+        const ratio = needle.length / haystack.length;
+        if (ratio >= 0.5 || haystack.split(/\s+/).includes(needle)) {
+            return 0.95;
+        }
+        // Partial match gets lower score
+        return 0.7;
     }
 
     // Check if needle is very similar to any part of haystack
@@ -89,10 +101,17 @@ export function containsSimilarity(haystack: string, needle: string): number {
     if (needleTokens.length === 1) {
         let maxScore = 0;
         for (const token of haystackTokens) {
+            // Require minimum token length
+            if (token.length < 3 || needleTokens[0].length < 3) {
+                continue;
+            }
             const score = similarity(token, needleTokens[0]);
-            maxScore = Math.max(maxScore, score);
+            // Only accept if similarity is very high (>= 0.8)
+            if (score >= 0.8) {
+                maxScore = Math.max(maxScore, score);
+            }
         }
-        return maxScore * 0.9; // Penalize slightly for not being exact substring
+        return maxScore > 0 ? maxScore * 0.9 : 0;
     }
 
     // For multi-token needle, check sliding window
@@ -101,9 +120,12 @@ export function containsSimilarity(haystack: string, needle: string): number {
         for (let i = 0; i <= haystackTokens.length - needleTokens.length; i++) {
             const window = haystackTokens.slice(i, i + needleTokens.length).join(' ');
             const score = similarity(window, needle);
-            maxScore = Math.max(maxScore, score);
+            // Require high similarity for multi-token matches
+            if (score >= 0.85) {
+                maxScore = Math.max(maxScore, score);
+            }
         }
-        return maxScore * 0.9;
+        return maxScore > 0 ? maxScore * 0.9 : 0;
     }
 
     return 0;
